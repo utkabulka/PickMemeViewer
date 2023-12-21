@@ -1,12 +1,5 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
+import type { PropsWithChildren } from 'react';
 import React from 'react';
-import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -17,13 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -55,41 +42,50 @@ function Section({children, title}: SectionProps): React.JSX.Element {
   );
 }
 
+type CardProps = PropsWithChildren<{
+  text: string;
+  author: string;
+  card_color: string;
+  text_color: string;
+}>;
+
+function Card({
+  text,
+  author,
+  card_color,
+  text_color,
+}: CardProps): React.JSX.Element {
+  return (
+    <View style={[styles.card, {backgroundColor: card_color}]}>
+      <Text style={[styles.cardText, {color: text_color}]}>{text}</Text>
+      <Text style={[styles.cardText, {color: text_color}]}>
+        #{author.toUpperCase()}
+      </Text>
+    </View>
+  );
+}
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  // const backgroundStyle = {
+  //   backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  // };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
+    <SafeAreaView>
+      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          <Card
+            text="Когда ты когда они и когда они"
+            author="автор"
+            card_color="#C254BD"
+            text_color="#FFFFFF"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -112,6 +108,13 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  card: {
+    margin: 8,
+    height: 500,
+  },
+  cardText: {
+    fontSize: 32,
   },
 });
 
