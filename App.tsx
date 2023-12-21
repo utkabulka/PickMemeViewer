@@ -42,6 +42,7 @@ function App(): React.JSX.Element {
   const [packs, setPacks] = useState([]);
 
   async function handleAddPacks() {
+    let newPacks = [...packs];
     try {
       const responses = await DocumentPicker.pick({
         presentationStyle: 'fullScreen',
@@ -50,19 +51,38 @@ function App(): React.JSX.Element {
       for (const response of responses) {
         const fileString = await RNFS.readFile(response.uri);
         const pack = JSON.parse(fileString);
-        setPacks([...packs, pack]);
+        if (doesPackExist(pack.id)) {
+          console.warn(`Pack "${pack.pack_name}" is already added!`);
+        } else {
+          newPacks.push(pack);
+          console.log(`Added pack ${pack.pack_name}`);
+        }
       }
     } catch (err) {
       console.warn(`Pack is invalid: ${err}`);
     }
+    setPacks(newPacks);
   }
 
   function getTotalCardCount(): Number {
     let count = 0;
     packs.forEach(pack => {
-      count += pack['cards'].length;
+      if (pack.cards !== undefined && pack.cards.length > 0) {
+        count += pack.cards.length;
+      } else {
+        console.warn(`Pack ${pack.pack_name} is undefined!`);
+      }
     });
     return count;
+  }
+
+  function doesPackExist(id: String): Boolean {
+    for (const pack of packs) {
+      if (pack.id === id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function handleClearPackData() {
