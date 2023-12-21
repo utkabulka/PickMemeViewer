@@ -1,46 +1,17 @@
 import type { PropsWithChildren } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
+  useColorScheme,
 } from 'react-native';
-
+import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
 
 type CardProps = PropsWithChildren<{
   text: string;
@@ -68,9 +39,35 @@ function Card({
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
-  // const backgroundStyle = {
-  //   backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  // };
+  const [packs, setPacks] = useState([]);
+
+  async function handleAddPacks() {
+    try {
+      const responses = await DocumentPicker.pick({
+        presentationStyle: 'fullScreen',
+        allowMultiSelection: true,
+      });
+      for (const response of responses) {
+        const fileString = await RNFS.readFile(response.uri);
+        const pack = JSON.parse(fileString);
+        setPacks([...packs, pack]);
+      }
+    } catch (err) {
+      console.warn(`Pack is invalid: ${err}`);
+    }
+  }
+
+  function getTotalCardCount(): Number {
+    let count = 0;
+    packs.forEach(pack => {
+      count += pack['cards'].length;
+    });
+    return count;
+  }
+
+  function handleClearPackData() {
+    setPacks([]);
+  }
 
   return (
     <SafeAreaView>
@@ -86,6 +83,14 @@ function App(): React.JSX.Element {
             card_color="#C254BD"
             text_color="#FFFFFF"
           />
+          <Button title="Random" />
+          <Button title="Add pack(s)" onPress={handleAddPacks} />
+          <Button title="Clear all pack data" onPress={handleClearPackData} />
+          <Text>Installed {packs.length} packs.</Text>
+          <Text>
+            There are total of {getTotalCardCount().toString()} cards in the
+            library.
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
