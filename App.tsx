@@ -16,6 +16,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 type CardProps = PropsWithChildren<{
   text: string;
   author: string;
+  pack_name: string;
   card_color: string;
   text_color: string;
 }>;
@@ -23,15 +24,21 @@ type CardProps = PropsWithChildren<{
 function Card({
   text,
   author,
+  pack_name,
   card_color,
   text_color,
 }: CardProps): React.JSX.Element {
   return (
     <View style={[styles.card, {backgroundColor: card_color}]}>
       <Text style={[styles.cardText, {color: text_color}]}>{text}</Text>
-      <Text style={[styles.cardText, {color: text_color}]}>
-        #{author.toUpperCase()}
-      </Text>
+      <View>
+        <Text style={[styles.cardText, {color: text_color}]}>
+          {author !== '' ? `#${author.toUpperCase()}` : null}
+        </Text>
+        <Text style={[styles.cardTextPackName, {color: text_color}]}>
+          {pack_name}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -40,6 +47,14 @@ function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const [packs, setPacks] = useState([]);
+
+  const [card, setCard] = useState<CardProps>({
+    text: 'Add some packs!',
+    author: '',
+    pack_name: '',
+    card_color: '#FF0073',
+    text_color: '#FFFFFF',
+  });
 
   async function handleAddPacks() {
     let newPacks = [...packs];
@@ -62,6 +77,18 @@ function App(): React.JSX.Element {
       console.warn(`Pack is invalid: ${err}`);
     }
     setPacks(newPacks);
+  }
+
+  function randomizeCard() {
+    const pack = packs[Math.floor(Math.random() * packs.length)];
+    const card = pack.cards[Math.floor(Math.random() * pack.cards.length)];
+    setCard({
+      text: card.text,
+      author: pack.author,
+      pack_name: pack.pack_name,
+      card_color: pack.card_color,
+      text_color: pack.text_color,
+    });
   }
 
   function getTotalCardCount(): Number {
@@ -98,12 +125,13 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Card
-            text="Когда ты когда они и когда они"
-            author="автор"
-            card_color="#C254BD"
-            text_color="#FFFFFF"
+            text={card.text}
+            author={card.author}
+            pack_name={card.pack_name}
+            card_color={card.card_color}
+            text_color={card.text_color}
           />
-          <Button title="Random" />
+          <Button title="Random" onPress={randomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
           <Button title="Clear all pack data" onPress={handleClearPackData} />
           <Text>Installed {packs.length} packs.</Text>
@@ -135,11 +163,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   card: {
+    display: 'flex',
+    justifyContent: 'space-between',
     margin: 8,
-    height: 500,
+    padding: 24,
+    borderRadius: 16,
+    height: 600,
   },
   cardText: {
     fontSize: 32,
+  },
+  cardTextPackName: {
+    fontSize: 16,
   },
 });
 
