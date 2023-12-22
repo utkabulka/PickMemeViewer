@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PropsWithChildren } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   SafeAreaView,
@@ -32,7 +33,7 @@ function Card({
     <View style={[styles.card, {backgroundColor: card_color}]}>
       <Text style={[styles.cardText, {color: text_color}]}>{text}</Text>
       <View>
-        <Text style={[styles.cardText, {color: text_color}]}>
+        <Text style={[styles.cardTextAuthor, {color: text_color}]}>
           {author !== '' ? `#${author.toUpperCase()}` : null}
         </Text>
         <Text style={[styles.cardTextPackName, {color: text_color}]}>
@@ -43,12 +44,59 @@ function Card({
   );
 }
 
+type Pack = {
+  data_version: Number;
+  pack_version: Number;
+  id: string;
+  pack_name: string;
+  language: string;
+  author: string;
+  card_color: string;
+  text_color: string;
+  cards: Array<Card>;
+};
+
+type Card = {
+  id: string;
+  text: string;
+};
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
-  const [packs, setPacks] = useState([]);
+  const [packs, setPacks] = useState<Array<Pack>>([]);
 
-  const [card, setCard] = useState<CardProps>({
+  async function savePacks(newPacks: Array<Pack>) {
+    try {
+      await AsyncStorage.setItem('packs', JSON.stringify(newPacks));
+      console.log('Saved packs');
+    } catch (error) {
+      console.error(`Failed to save packs: ${error}`);
+    }
+  }
+
+  useEffect(() => {
+    async function getPacks() {
+      try {
+        const jsonValue = await AsyncStorage.getItem('packs');
+        if (jsonValue != null) {
+          let loadedPacks = JSON.parse(jsonValue);
+          if (loadedPacks.length > 0) {
+            setPacks(loadedPacks);
+            randomizeCardFromData(loadedPacks);
+            console.log(`Loaded ${loadedPacks.length} packs`);
+          }
+        } else {
+          console.log('No packs are loaded');
+        }
+      } catch (error) {
+        console.warn(`Failed to load packs: ${error}`);
+      }
+    }
+    getPacks();
+  }, []);
+
+  const [cardProps, setCard] = useState<CardProps>({
     text: 'Add some packs!',
     author: '',
     pack_name: '',
@@ -73,22 +121,31 @@ function App(): React.JSX.Element {
           console.log(`Added pack ${pack.pack_name}`);
         }
       }
-    } catch (err) {
-      console.warn(`Pack is invalid: ${err}`);
+    } catch (error) {
+      console.warn(`Pack is invalid: ${error}`);
     }
     setPacks(newPacks);
+    await savePacks(newPacks);
+  }
+
+  function randomizeCardFromData(packsData: Array<Pack>) {
+    if (packsData.length > 0) {
+      const pack: Pack =
+        packsData[Math.floor(Math.random() * packsData.length)];
+      const card: Card =
+        pack.cards[Math.floor(Math.random() * pack.cards.length)];
+      setCard({
+        text: card.text,
+        author: pack.author,
+        pack_name: pack.pack_name,
+        card_color: pack.card_color,
+        text_color: pack.text_color,
+      });
+    }
   }
 
   function randomizeCard() {
-    const pack = packs[Math.floor(Math.random() * packs.length)];
-    const card = pack.cards[Math.floor(Math.random() * pack.cards.length)];
-    setCard({
-      text: card.text,
-      author: pack.author,
-      pack_name: pack.pack_name,
-      card_color: pack.card_color,
-      text_color: pack.text_color,
-    });
+    randomizeCardFromData(packs);
   }
 
   function getTotalCardCount(): Number {
@@ -113,6 +170,7 @@ function App(): React.JSX.Element {
   }
 
   function handleClearPackData() {
+    savePacks([]);
     setPacks([]);
   }
 
@@ -125,11 +183,11 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Card
-            text={card.text}
-            author={card.author}
-            pack_name={card.pack_name}
-            card_color={card.card_color}
-            text_color={card.text_color}
+            text={cardProps.text}
+            author={cardProps.author}
+            pack_name={cardProps.pack_name}
+            card_color={cardProps.card_color}
+            text_color={cardProps.text_color}
           />
           <Button title="Random" onPress={randomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
@@ -172,6 +230,10 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 32,
+  },
+  cardTextAuthor: {
+    fontSize: 32,
+    fontWeight: '700',
   },
   cardTextPackName: {
     fontSize: 16,
