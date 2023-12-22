@@ -1,48 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PropsWithChildren } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Button,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useColorScheme,
 } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-
-type CardProps = PropsWithChildren<{
-  text: string;
-  author: string;
-  pack_name: string;
-  card_color: string;
-  text_color: string;
-}>;
-
-function Card({
-  text,
-  author,
-  pack_name,
-  card_color,
-  text_color,
-}: CardProps): React.JSX.Element {
-  return (
-    <View style={[styles.card, {backgroundColor: card_color}]}>
-      <Text style={[styles.cardText, {color: text_color}]}>{text}</Text>
-      <View>
-        <Text style={[styles.cardTextAuthor, {color: text_color}]}>
-          {author !== '' ? `#${author.toUpperCase()}` : null}
-        </Text>
-        <Text style={[styles.cardTextPackName, {color: text_color}]}>
-          {pack_name}
-        </Text>
-      </View>
-    </View>
-  );
-}
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import Card, {CardProps} from './components/Card';
 
 type Pack = {
   data_version: Number;
@@ -128,6 +97,9 @@ function App(): React.JSX.Element {
     await savePacks(newPacks);
   }
 
+  function randomizeCard() {
+    randomizeCardFromData(packs);
+  }
   function randomizeCardFromData(packsData: Array<Pack>) {
     if (packsData.length > 0) {
       const pack: Pack =
@@ -142,10 +114,6 @@ function App(): React.JSX.Element {
         text_color: pack.text_color,
       });
     }
-  }
-
-  function randomizeCard() {
-    randomizeCardFromData(packs);
   }
 
   function getTotalCardCount(): Number {
@@ -176,7 +144,6 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView>
-      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
       <ScrollView contentInsetAdjustmentBehavior="automatic">
         <View
           style={{
@@ -202,42 +169,5 @@ function App(): React.JSX.Element {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  card: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    margin: 8,
-    padding: 24,
-    borderRadius: 16,
-    height: 600,
-  },
-  cardText: {
-    fontSize: 32,
-  },
-  cardTextAuthor: {
-    fontSize: 32,
-    fontWeight: '700',
-  },
-  cardTextPackName: {
-    fontSize: 16,
-  },
-});
 
 export default App;
