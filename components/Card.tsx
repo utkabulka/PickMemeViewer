@@ -1,23 +1,24 @@
 import React from 'react';
-import {PropsWithChildren} from 'react';
 import {Text, View} from 'react-native';
 import Styles from '../styles/Styles';
 
-type CardProps = PropsWithChildren<{
+type CardData = {
+  id: string;
   text: string;
   author: string;
   pack_name: string;
   card_color: string;
   text_color: string;
-}>;
+};
 
 function Card({
+  id,
   text,
   author,
   pack_name,
   card_color,
   text_color,
-}: CardProps): React.JSX.Element {
+}: CardData): React.JSX.Element {
   return (
     <View style={[Styles.card, {backgroundColor: card_color}]}>
       <Text style={[Styles.cardText, {color: text_color}]}>{text}</Text>
@@ -34,4 +35,4 @@ function Card({
 }
 
 export default Card;
-export type {CardProps};
+export type {CardData};

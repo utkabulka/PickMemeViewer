@@ -11,7 +11,7 @@ import {
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import Card, {CardProps} from './components/Card';
+import Card, {CardData} from './components/Card';
 
 type Pack = {
   data_version: Number;
@@ -22,12 +22,7 @@ type Pack = {
   author: string;
   card_color: string;
   text_color: string;
-  cards: Array<Card>;
-};
-
-type Card = {
-  id: string;
-  text: string;
+  cards: Array<CardData>;
 };
 
 const PACKS_KEY = 'packs';
@@ -39,6 +34,14 @@ function App(): React.JSX.Element {
 
   const [packs, setPacks] = useState<Array<Pack>>([]);
   const [drawnCards, setDrawnCards] = useState<Array<string>>([]);
+  const [card, setCard] = useState<CardData>({
+    id: '',
+    text: 'Add some packs!',
+    author: '',
+    pack_name: '',
+    card_color: '#FF0073',
+    text_color: '#FFFFFF',
+  });
 
   async function savePacks(newPacks: Array<Pack>) {
     try {
@@ -69,7 +72,10 @@ function App(): React.JSX.Element {
           const loadedPacks = JSON.parse(jsonValue);
           if (loadedPacks.length > 0) {
             setPacks(loadedPacks);
-            randomizeCardFromData(loadedPacks);
+            const randomCard = getRandomCardFromData(loadedPacks);
+            if (randomCard != null) {
+              setCard(randomCard);
+            }
           }
         } else {
           console.log('No packs were loaded');
@@ -90,14 +96,6 @@ function App(): React.JSX.Element {
     }
     loadData();
   }, []);
-
-  const [cardProps, setCard] = useState<CardProps>({
-    text: 'Add some packs!',
-    author: '',
-    pack_name: '',
-    card_color: '#FF0073',
-    text_color: '#FFFFFF',
-  });
 
   async function handleAddPacks() {
     let newPacks = [...packs];
@@ -123,34 +121,45 @@ function App(): React.JSX.Element {
     await savePacks(newPacks);
   }
 
-  function randomizeCard() {
-    return randomizeCardFromData(packs);
+  function getRandomCard(): CardData | null {
+    return getRandomCardFromData(packs);
   }
-  function randomizeCardFromData(packsData: Array<Pack>) {
+  function getRandomCardFromData(packsData: Array<Pack>): CardData | null {
     if (packsData.length > 0) {
-      let pack: Pack;
-      let card: Card;
+      let randomPack: Pack;
+      let randomCard: CardData;
       while (true) {
         // get random card
-        pack = packsData[Math.floor(Math.random() * packsData.length)];
-        card = pack.cards[Math.floor(Math.random() * pack.cards.length)];
-        if (!drawnCards.includes(card.id)) {
-          break;
+        randomPack = packsData[Math.floor(Math.random() * packsData.length)];
+        randomCard =
+          randomPack.cards[Math.floor(Math.random() * randomPack.cards.length)];
+        if (!drawnCards.includes(randomCard.id)) {
+          return {
+            id: randomCard.id,
+            text: randomCard.text,
+            author: randomPack.author,
+            pack_name: randomPack.pack_name,
+            card_color: randomPack.card_color,
+            text_color: randomPack.text_color,
+          };
         }
       }
-
-      setCard({
-        text: card.text,
-        author: pack.author,
-        pack_name: pack.pack_name,
-        card_color: pack.card_color,
-        text_color: pack.text_color,
-      });
-
-      const newDrawnCards: Array<string> = [...drawnCards, card.id];
-      setDrawnCards(newDrawnCards);
-      saveDrawnCards(newDrawnCards);
     }
+    return null;
+  }
+
+  function randomizeCard() {
+    const randomCard = getRandomCard();
+    if (randomCard !== null) {
+      setCard(randomCard);
+      addDrawnCard(randomCard.id);
+    }
+  }
+
+  function addDrawnCard(cardId: string) {
+    const newDrawnCards: Array<string> = [...drawnCards, cardId];
+    setDrawnCards(newDrawnCards);
+    saveDrawnCards(newDrawnCards);
   }
 
   function getTotalCardCount(): Number {
@@ -191,11 +200,12 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Card
-            text={cardProps.text}
-            author={cardProps.author}
-            pack_name={cardProps.pack_name}
-            card_color={cardProps.card_color}
-            text_color={cardProps.text_color}
+            id={card.id}
+            text={card.text}
+            author={card.author}
+            pack_name={card.pack_name}
+            card_color={card.card_color}
+            text_color={card.text_color}
           />
           <Button title="Random" onPress={randomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
