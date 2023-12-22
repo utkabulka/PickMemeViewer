@@ -30,39 +30,65 @@ type Card = {
   text: string;
 };
 
+const PACKS_KEY = 'packs';
+const DRAWN_CARDS_KEY = 'drawnCards';
+const HISTORY_KEY = 'history'; // TODO: implement history
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const [packs, setPacks] = useState<Array<Pack>>([]);
+  const [drawnCards, setDrawnCards] = useState<Array<string>>([]);
 
   async function savePacks(newPacks: Array<Pack>) {
     try {
-      await AsyncStorage.setItem('packs', JSON.stringify(newPacks));
+      await AsyncStorage.setItem(PACKS_KEY, JSON.stringify(newPacks));
       console.log('Saved packs');
     } catch (error) {
       console.error(`Failed to save packs: ${error}`);
     }
   }
 
+  async function saveDrawnCards(newDrawnCards: Array<string>) {
+    try {
+      await AsyncStorage.setItem(
+        DRAWN_CARDS_KEY,
+        JSON.stringify(newDrawnCards),
+      );
+    } catch (error) {
+      console.error(`Failed to save drawn cards: ${error}`);
+    }
+  }
+
   useEffect(() => {
-    async function getPacks() {
+    async function loadData() {
       try {
-        const jsonValue = await AsyncStorage.getItem('packs');
+        // loading installed packs
+        let jsonValue = await AsyncStorage.getItem(PACKS_KEY);
         if (jsonValue != null) {
-          let loadedPacks = JSON.parse(jsonValue);
+          const loadedPacks = JSON.parse(jsonValue);
           if (loadedPacks.length > 0) {
             setPacks(loadedPacks);
             randomizeCardFromData(loadedPacks);
-            console.log(`Loaded ${loadedPacks.length} packs`);
           }
         } else {
-          console.log('No packs are loaded');
+          console.log('No packs were loaded');
+        }
+        // loading drawn cards
+        jsonValue = await AsyncStorage.getItem(DRAWN_CARDS_KEY);
+        if (jsonValue != null) {
+          const loadedDrawnCards = JSON.parse(jsonValue);
+          if (loadedDrawnCards.length > 0) {
+            setDrawnCards(loadedDrawnCards);
+          }
+        } else {
+          console.log('No drawn cards were loaded');
         }
       } catch (error) {
         console.warn(`Failed to load packs: ${error}`);
       }
     }
-    getPacks();
+    loadData();
   }, []);
 
   const [cardProps, setCard] = useState<CardProps>({
@@ -98,14 +124,21 @@ function App(): React.JSX.Element {
   }
 
   function randomizeCard() {
-    randomizeCardFromData(packs);
+    return randomizeCardFromData(packs);
   }
   function randomizeCardFromData(packsData: Array<Pack>) {
     if (packsData.length > 0) {
-      const pack: Pack =
-        packsData[Math.floor(Math.random() * packsData.length)];
-      const card: Card =
-        pack.cards[Math.floor(Math.random() * pack.cards.length)];
+      let pack: Pack;
+      let card: Card;
+      while (true) {
+        // get random card
+        pack = packsData[Math.floor(Math.random() * packsData.length)];
+        card = pack.cards[Math.floor(Math.random() * pack.cards.length)];
+        if (!drawnCards.includes(card.id)) {
+          break;
+        }
+      }
+
       setCard({
         text: card.text,
         author: pack.author,
@@ -113,6 +146,10 @@ function App(): React.JSX.Element {
         card_color: pack.card_color,
         text_color: pack.text_color,
       });
+
+      const newDrawnCards: Array<string> = [...drawnCards, card.id];
+      setDrawnCards(newDrawnCards);
+      saveDrawnCards(newDrawnCards);
     }
   }
 
@@ -142,6 +179,10 @@ function App(): React.JSX.Element {
     setPacks([]);
   }
 
+  function handleClearDrawnCards() {
+    setDrawnCards([]);
+  }
+
   return (
     <SafeAreaView>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
@@ -158,12 +199,14 @@ function App(): React.JSX.Element {
           />
           <Button title="Random" onPress={randomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
+          <Button title="Clear drawn cards" onPress={handleClearDrawnCards} />
           <Button title="Clear all pack data" onPress={handleClearPackData} />
           <Text>Installed {packs.length} packs.</Text>
           <Text>
             There are total of {getTotalCardCount().toString()} cards in the
             library.
           </Text>
+          <Text>There are {drawnCards.length} cards already drawn.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
