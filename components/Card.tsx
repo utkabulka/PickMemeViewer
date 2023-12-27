@@ -19,6 +19,11 @@ function Card({
   card_color,
   text_color,
 }: CardData): React.JSX.Element {
+  if (id === null || id === '') {
+    console.warn(
+      `Card doesn't have an ID! Pack name: ${pack_name}; Text: '${text}'`,
+    );
+  }
   return (
     <View style={[Styles.card, {backgroundColor: card_color}]}>
       <Text style={[Styles.cardText, {color: text_color}]}>{text}</Text>

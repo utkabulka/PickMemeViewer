@@ -12,6 +12,7 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import Card, {CardData} from './components/Card';
+import SettingsScreen from './components/SettingsScreen';
 
 type Pack = {
   data_version: Number;
@@ -28,6 +29,7 @@ type Pack = {
 const PACKS_KEY = 'packs';
 const DRAWN_CARDS_KEY = 'drawnCards';
 const HISTORY_KEY = 'history'; // TODO: implement history
+const SETTINGS_KEY = 'settings'; // TODO: implement settings
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -35,7 +37,7 @@ function App(): React.JSX.Element {
   const [packs, setPacks] = useState<Array<Pack>>([]);
   const [drawnCards, setDrawnCards] = useState<Array<string>>([]);
   const [card, setCard] = useState<CardData>({
-    id: '',
+    id: '0',
     text: 'Add some packs!',
     author: '',
     pack_name: '',
@@ -217,6 +219,7 @@ function App(): React.JSX.Element {
             library.
           </Text>
           <Text>There are {drawnCards.length} cards already drawn.</Text>
+          <SettingsScreen />
         </View>
       </ScrollView>
     </SafeAreaView>
