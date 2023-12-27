@@ -29,7 +29,7 @@ type Pack = {
 const PACKS_KEY = 'packs';
 const DRAWN_CARDS_KEY = 'drawnCards';
 const HISTORY_KEY = 'history'; // TODO: implement history
-const SETTINGS_KEY = 'settings'; // TODO: implement settings
+const SETTINGS_KEY = 'settings';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -52,9 +52,25 @@ function App(): React.JSX.Element {
 
   useEffect(() => {
     async function loadData() {
+      let jsonValue;
+
+      // loading settings
       try {
-        // loading installed packs
-        let jsonValue = await AsyncStorage.getItem(PACKS_KEY);
+        jsonValue = await AsyncStorage.getItem(SETTINGS_KEY);
+        if (jsonValue != null) {
+          const loadedSettings = JSON.parse(jsonValue);
+          setSettings(loadedSettings);
+        } else {
+          console.log('No settings were loaded; saving default settings...');
+          saveSettings(settings);
+        }
+      } catch (error) {
+        console.warn(`Failed to load settings: ${error}`);
+      }
+
+      // loading installed packs
+      try {
+        jsonValue = await AsyncStorage.getItem(PACKS_KEY);
         if (jsonValue != null) {
           const loadedPacks = JSON.parse(jsonValue);
           if (loadedPacks.length > 0) {
@@ -65,9 +81,14 @@ function App(): React.JSX.Element {
             }
           }
         } else {
-          console.log('No packs were loaded');
+          console.log('No packs were loaded!');
         }
-        // loading drawn cards
+      } catch (error) {
+        console.warn(`Failed to load installed packs: ${error}`);
+      }
+
+      // loading drawn cards
+      try {
         jsonValue = await AsyncStorage.getItem(DRAWN_CARDS_KEY);
         if (jsonValue != null) {
           const loadedDrawnCards = JSON.parse(jsonValue);
@@ -75,14 +96,23 @@ function App(): React.JSX.Element {
             setDrawnCards(loadedDrawnCards);
           }
         } else {
-          console.log('No drawn cards were loaded');
+          console.log('No drawn cards were loaded!');
         }
       } catch (error) {
-        console.warn(`Failed to load packs: ${error}`);
+        console.warn(`Failed to load drawn cards: ${error}`);
       }
     }
     loadData();
   }, []);
+
+  async function saveSettings(newSettings: Settings) {
+    try {
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      console.log('Saved settings');
+    } catch (error) {
+      console.error(`Failed to save settings: ${error}`);
+    }
+  }
 
   async function savePacks(newPacks: Array<Pack>) {
     try {
@@ -191,19 +221,22 @@ function App(): React.JSX.Element {
   }
 
   function handleClearPackData() {
-    savePacks([]);
     setPacks([]);
+    savePacks([]);
   }
 
   function handleClearDrawnCards() {
     setDrawnCards([]);
+    saveDrawnCards([]);
   }
 
   function handleSettingsChanged(
     key: string,
     value: string | number | boolean,
   ) {
-    setSettings({...settings, [key]: value});
+    const newSettings = {...settings, [key]: value};
+    setSettings(newSettings);
+    saveSettings(newSettings);
   }
 
   return (
