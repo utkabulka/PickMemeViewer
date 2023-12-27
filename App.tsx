@@ -11,7 +11,7 @@ import {
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import Card, {CardData} from './components/Card';
+import Card, {CardColors, CardData} from './components/Card';
 import SettingsScreen, {Settings} from './components/SettingsScreen';
 
 type Pack = {
@@ -30,6 +30,16 @@ const PACKS_KEY = 'packs';
 const DRAWN_CARDS_KEY = 'drawnCards';
 const HISTORY_KEY = 'history'; // TODO: implement history
 const SETTINGS_KEY = 'settings';
+
+// TODO: pick normal colors
+const darkModeCardColors: CardColors = {
+  card_color: '#000000',
+  text_color: '#FFFFFF',
+};
+const brightModeCardColors: CardColors = {
+  card_color: '#FFFFFF',
+  text_color: '#000000',
+};
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -257,7 +267,13 @@ function App(): React.JSX.Element {
             text={card.text}
             author={settings.showAuthorTag ? card.author : null}
             pack_name={settings.showPackName ? card.pack_name : null}
-            card_colors={card.card_colors}
+            card_colors={
+              settings.showCardColors
+                ? card.card_colors
+                : settings.darkMode
+                ? darkModeCardColors
+                : brightModeCardColors
+            }
           />
           <Button title="Random" onPress={handleRandomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
