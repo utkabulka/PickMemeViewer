@@ -37,6 +37,8 @@ function App(): React.JSX.Element {
   const [settings, setSettings] = useState<Settings>({
     darkMode: useColorScheme() === 'dark',
     showCardColors: true,
+    showAuthorTag: true,
+    showPackName: true,
   });
 
   const [packs, setPacks] = useState<Array<Pack>>([]);
@@ -46,8 +48,10 @@ function App(): React.JSX.Element {
     text: 'Add some packs!',
     author: '',
     pack_name: '',
-    card_color: '#FF0073',
-    text_color: '#FFFFFF',
+    card_colors: {
+      card_color: '#FF0073',
+      text_color: '#FFFFFF',
+    },
   });
 
   useEffect(() => {
@@ -176,8 +180,10 @@ function App(): React.JSX.Element {
             text: randomCard.text,
             author: randomPack.author,
             pack_name: randomPack.pack_name,
-            card_color: randomPack.card_color,
-            text_color: randomPack.text_color,
+            card_colors: {
+              card_color: randomPack.card_color,
+              text_color: randomPack.text_color,
+            },
           };
         }
       }
@@ -249,10 +255,9 @@ function App(): React.JSX.Element {
           <Card
             id={card.id}
             text={card.text}
-            author={card.author}
-            pack_name={card.pack_name}
-            card_color={card.card_color}
-            text_color={card.text_color}
+            author={settings.showAuthorTag ? card.author : null}
+            pack_name={settings.showPackName ? card.pack_name : null}
+            card_colors={card.card_colors}
           />
           <Button title="Random" onPress={handleRandomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />

@@ -5,6 +5,8 @@ import CheckboxSetting from './CheckboxSetting';
 type Settings = {
   darkMode: boolean;
   showCardColors: boolean;
+  showAuthorTag: boolean;
+  showPackName: boolean;
 };
 
 type SettingsProps = {
@@ -30,6 +32,20 @@ function SettingsScreen({
         value={settings.showCardColors}
         onSwitch={(value: boolean) => {
           onSettingsChanged('showCardColors', value);
+        }}
+      />
+      <CheckboxSetting
+        title="Show author tag"
+        value={settings.showAuthorTag}
+        onSwitch={(value: boolean) => {
+          onSettingsChanged('showAuthorTag', value);
+        }}
+      />
+      <CheckboxSetting
+        title="Show pack name"
+        value={settings.showPackName}
+        onSwitch={(value: boolean) => {
+          onSettingsChanged('showPackName', value);
         }}
       />
     </View>
