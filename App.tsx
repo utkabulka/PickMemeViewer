@@ -12,11 +12,11 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import Card, {CardData} from './components/Card';
-import SettingsScreen from './components/SettingsScreen';
+import SettingsScreen, {Settings} from './components/SettingsScreen';
 
 type Pack = {
-  data_version: Number;
-  pack_version: Number;
+  data_version: number;
+  pack_version: number;
   id: string;
   pack_name: string;
   language: string;
@@ -34,6 +34,11 @@ const SETTINGS_KEY = 'settings'; // TODO: implement settings
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const [settings, setSettings] = useState<Settings>({
+    darkMode: useColorScheme() === 'dark',
+    showCardColors: true,
+  });
+
   const [packs, setPacks] = useState<Array<Pack>>([]);
   const [drawnCards, setDrawnCards] = useState<Array<string>>([]);
   const [card, setCard] = useState<CardData>({
@@ -44,26 +49,6 @@ function App(): React.JSX.Element {
     card_color: '#FF0073',
     text_color: '#FFFFFF',
   });
-
-  async function savePacks(newPacks: Array<Pack>) {
-    try {
-      await AsyncStorage.setItem(PACKS_KEY, JSON.stringify(newPacks));
-      console.log('Saved packs');
-    } catch (error) {
-      console.error(`Failed to save packs: ${error}`);
-    }
-  }
-
-  async function saveDrawnCards(newDrawnCards: Array<string>) {
-    try {
-      await AsyncStorage.setItem(
-        DRAWN_CARDS_KEY,
-        JSON.stringify(newDrawnCards),
-      );
-    } catch (error) {
-      console.error(`Failed to save drawn cards: ${error}`);
-    }
-  }
 
   useEffect(() => {
     async function loadData() {
@@ -98,6 +83,26 @@ function App(): React.JSX.Element {
     }
     loadData();
   }, []);
+
+  async function savePacks(newPacks: Array<Pack>) {
+    try {
+      await AsyncStorage.setItem(PACKS_KEY, JSON.stringify(newPacks));
+      console.log('Saved packs');
+    } catch (error) {
+      console.error(`Failed to save packs: ${error}`);
+    }
+  }
+
+  async function saveDrawnCards(newDrawnCards: Array<string>) {
+    try {
+      await AsyncStorage.setItem(
+        DRAWN_CARDS_KEY,
+        JSON.stringify(newDrawnCards),
+      );
+    } catch (error) {
+      console.error(`Failed to save drawn cards: ${error}`);
+    }
+  }
 
   async function handleAddPacks() {
     let newPacks = [...packs];
@@ -150,7 +155,7 @@ function App(): React.JSX.Element {
     return null;
   }
 
-  function randomizeCard() {
+  function handleRandomizeCard() {
     const randomCard = getRandomCard();
     if (randomCard !== null) {
       setCard(randomCard);
@@ -194,6 +199,13 @@ function App(): React.JSX.Element {
     setDrawnCards([]);
   }
 
+  function handleSettingsChanged(
+    key: string,
+    value: string | number | boolean,
+  ) {
+    setSettings({...settings, [key]: value});
+  }
+
   return (
     <SafeAreaView>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
@@ -209,7 +221,7 @@ function App(): React.JSX.Element {
             card_color={card.card_color}
             text_color={card.text_color}
           />
-          <Button title="Random" onPress={randomizeCard} />
+          <Button title="Random" onPress={handleRandomizeCard} />
           <Button title="Add pack(s)" onPress={handleAddPacks} />
           <Button title="Clear drawn cards" onPress={handleClearDrawnCards} />
           <Button title="Clear all pack data" onPress={handleClearPackData} />
@@ -219,7 +231,10 @@ function App(): React.JSX.Element {
             library.
           </Text>
           <Text>There are {drawnCards.length} cards already drawn.</Text>
-          <SettingsScreen />
+          <SettingsScreen
+            settings={settings}
+            onSettingsChanged={handleSettingsChanged}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -2,14 +2,20 @@ import React from 'react';
 import CheckBox from '@react-native-community/checkbox';
 import {StyleSheet, Text, View} from 'react-native';
 
+type CheckboxSettingProps = {
+  title: string;
+  value: boolean;
+  onSwitch: (value: boolean) => void;
+};
+
 function CheckboxSetting({
   title = 'Checkbox setting',
   value = false,
-  onSwitch = () => {},
-}): React.JSX.Element {
+  onSwitch,
+}: CheckboxSettingProps): React.JSX.Element {
   return (
     <View style={style.settingContainer}>
-      <CheckBox value={value} onChange={onSwitch} />
+      <CheckBox value={value} onValueChange={onSwitch} />
       <Text>{title}</Text>
     </View>
   );
